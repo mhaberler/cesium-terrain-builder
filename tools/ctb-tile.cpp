@@ -300,7 +300,7 @@ CPL_STDCALL termProgress(double dfComplete, const char *pszMessage, void *pProgr
 static int
 CPL_STDCALL verboseProgress(double dfComplete, const char *pszMessage, void *pProgressArg) {
   stringstream stream;
-  stream << "[" << (int) (dfComplete*100) << "%] " << pszMessage << endl;
+  stream << "[" << int(dfComplete*100) << "%] " << pszMessage << endl;
   cout << stream.str();
 
   return TRUE;
@@ -487,10 +487,10 @@ public:
 
       if (level.finalX >= level.startX) {
         fprintf(fp, "{ \"startX\": %li, \"startY\": %li, \"endX\": %li, \"endY\": %li }",
-          level.startX,
-          level.startY,
-          level.finalX,
-          level.finalY);
+          long(level.startX),
+          long(level.startY),
+          long(level.finalX),
+          long(level.finalY));
       }
       fprintf(fp, " ]\n");
     }
@@ -506,7 +506,7 @@ static std::string
 createEmptyRootElevationFile(std::string &fileName, const Grid &grid, const TileCoordinate& coord) {
   GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");
 
-  if (poDriver == NULL) {
+  if (poDriver == nullptr) {
     throw CTBException("Could not retrieve GTiff GDAL driver");
   }
 
@@ -531,7 +531,7 @@ createEmptyRootElevationFile(std::string &fileName, const Grid &grid, const Tile
   if (oSRS.importFromEPSG(4326) != OGRERR_NONE) {
     throw CTBException("Could not create EPSG:4326 spatial reference");
   }
-  char *pszDstWKT = NULL;
+  char *pszDstWKT = nullptr;
   if (oSRS.exportToWkt(&pszDstWKT) != OGRERR_NONE) {
     CPLFree(pszDstWKT);
     throw CTBException("Could not create EPSG:4326 WKT string");
@@ -539,7 +539,7 @@ createEmptyRootElevationFile(std::string &fileName, const Grid &grid, const Tile
 
   // Create the GTiff file
   fileName += ".tif";
-  GDALDataset *poDataset = poDriver->Create(fileName.c_str(), tileSize, tileSize, 1, GDT_Float32, NULL);
+  GDALDataset *poDataset = poDriver->Create(fileName.c_str(), tileSize, tileSize, 1, GDT_Float32, nullptr);
 
   // Set the projection
   if (poDataset->SetProjection(pszDstWKT) != CE_None) {

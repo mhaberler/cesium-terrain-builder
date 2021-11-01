@@ -73,20 +73,6 @@ public:
     #endif
   }
 
-  /// Overload the assignment operator
-  Grid &
-  operator=(const Grid &other) {
-    mTileSize = other.mTileSize;
-    mExtent = other.mExtent;
-    mSRS = other.mSRS;
-    mInitialResolution = other.mInitialResolution;
-    mXOriginShift = other.mXOriginShift;
-    mYOriginShift = other.mYOriginShift;
-    mZoomFactor = other.mZoomFactor;
-
-    return *this;
-  }
-
   /// Override the equality operator
   bool
   operator==(const Grid &other) const {

@@ -256,7 +256,7 @@ public:
 
     // Generate the mesh.
     const heightfield &hf = *this;
-    generate_block(hf, mesh, level, m_log_size, x0 + half_size, y0 + half_size);
+    generate_block(hf, mesh, level, m_log_size, cx, cy);
   }
 
 private:
