@@ -23,6 +23,7 @@
 #include <cmath>
 #include <vector>
 #include <map>
+#include <cassert>
 #include "cpl_conv.h"
 
 #include "CTBException.hpp"
@@ -117,7 +118,8 @@ static inline int quantizeIndices(const double &origin, const double &factor, co
 }
 
 // Write the edge indices of the mesh
-template <typename T> int writeEdgeIndices(CTBOutputStream &ostream, const Mesh &mesh, double edgeCoord, int componentIndex) {
+template <typename T>
+size_t writeEdgeIndices(CTBOutputStream &ostream, const Mesh &mesh, double edgeCoord, int componentIndex) {
   std::vector<uint32_t> indices;
   std::map<uint32_t, size_t> ihash;
 
@@ -135,7 +137,7 @@ template <typename T> int writeEdgeIndices(CTBOutputStream &ostream, const Mesh 
     }
   }
 
-  int edgeCount = indices.size();
+  const auto edgeCount = indices.size();
   ostream.write(&edgeCount, sizeof(int));
 
   for (size_t i = 0; i < edgeCount; i++) {
@@ -269,7 +271,7 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
 
 
   // # Write mesh vertices (X Y Z components of each vertex):
-  int vertexCount = mMesh.vertices.size();
+  const auto vertexCount = mMesh.vertices.size();
   ostream.write(&vertexCount, sizeof(int));
   for (int c = 0; c < 3; c++) {
     double origin = bounds.min[c];
@@ -291,7 +293,7 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
   }
 
   // # Write mesh indices:
-  int triangleCount = mMesh.indices.size() / 3;
+  const auto triangleCount = mMesh.indices.size() / 3;
   ostream.write(&triangleCount, sizeof(int));
   if (vertexCount > BYTESPLIT) {
     uint32_t highest = 0;
@@ -316,7 +318,8 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
 
     // Write main indices
     for (size_t i = 0, icount = mMesh.indices.size(); i < icount; i++) {
-      code = highest - mMesh.indices[i];
+      assert(highest - mMesh.indices[i] < uint16_t(-1));
+      code = uint16_t(highest - mMesh.indices[i]);
       ostream.write(&code, sizeof(uint16_t));
       if (code == 0) highest++;
     }
@@ -332,7 +335,7 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
   if (writeVertexNormals && triangleCount > 0) {
     unsigned char extensionId = 1;
     ostream.write(&extensionId, sizeof(unsigned char));
-    int extensionLength = 2 * vertexCount;
+    const auto extensionLength = 2 * vertexCount;
     ostream.write(&extensionLength, sizeof(int));
 
     std::vector<CRSVertex> normalsPerVertex(vertexCount);
@@ -350,9 +353,9 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
       areasPerFace[j] = area;
     }
     for (size_t i = 0, icount = mMesh.indices.size(), j = 0; i < icount; i+=3, j++) {
-      int indexV0 = mMesh.indices[i  ];
-      int indexV1 = mMesh.indices[i+1];
-      int indexV2 = mMesh.indices[i+2];
+      const auto indexV0 = mMesh.indices[i  ];
+      const auto indexV1 = mMesh.indices[i+1];
+      const auto indexV2 = mMesh.indices[i+2];
 
       CRSVertex weightedNormal = normalsPerFace[j] * areasPerFace[j];
 

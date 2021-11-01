@@ -393,7 +393,7 @@ public:
     CRSBounds tileBounds = grid.tileBounds(*coordinate);
     i_zoom zoom = coordinate->zoom;
 
-    if ((1 + zoom) > levels.size()) {
+    if ((1u + zoom) > levels.size()) {
       for (size_t i = 0; i <= zoom; i++) {
         levels.push_back(LevelInfo());
       }
