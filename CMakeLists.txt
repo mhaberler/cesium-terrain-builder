@@ -7,30 +7,10 @@ set(CTB_VERSION_MINOR 4)
 set(CTB_VERSION_PATCH 1)
 
 # Ensure we have a C++11 compatible compiler (see
-# http://www.guyrutenberg.com/2014/01/05/enabling-c11-c0x-in-cmake/)
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-if(NOT MSVC)
-  if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  else()
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-  endif()
-endif()
-
-# We need g++ >= version 4.7 (see
-# http://stackoverflow.com/questions/4058565/check-gcc-minor-in-cmake)
-if (CMAKE_COMPILER_IS_GNUCXX)
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
-    OUTPUT_VARIABLE GCXX_VERSION)
-  if (GCXX_VERSION VERSION_LESS 4.7)
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} is version ${GCXX_VERSION} which is not supported. Please use version 4.7 or greater.")
-  endif()
-endif()
+# https://stackoverflow.com/questions/45688522/how-to-enable-c17-in-cmake/)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # The tile size (width and height). According to the spec this should always be
 # 65
