@@ -25,8 +25,8 @@
 
 using namespace ctb;
 
-void 
-ctb::TerrainTiler::prepareSettingsOfTile(TerrainTile *terrainTile, const TileCoordinate &coord, float *rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const {
+void
+ctb::TerrainTiler::prepareSettingsOfTile(TerrainTile *terrainTile, const TileCoordinate &coord, const float *rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const {
   const ctb::i_tile TILE_CELL_SIZE = tileSizeX * tileSizeY;
 
   // Convert the raster data into the terrain tile heights.  This assumes the
@@ -65,12 +65,11 @@ ctb::TerrainTiler::prepareSettingsOfTile(TerrainTile *terrainTile, const TileCoo
 TerrainTile *
 ctb::TerrainTiler::createTile(GDALDataset *dataset, const TileCoordinate &coord) const {
   // Copy the raster data into an array
-  float *rasterHeights = ctb::GDALDatasetReader::readRasterHeights(*this, dataset, coord, TILE_SIZE, TILE_SIZE);
+  const auto rasterHeights = ctb::GDALDatasetReader::readRasterHeights(*this, dataset, coord, TILE_SIZE, TILE_SIZE);
 
   // Get a terrain tile represented by the tile coordinate
   TerrainTile *terrainTile = new TerrainTile(coord);
-  prepareSettingsOfTile(terrainTile, coord, rasterHeights, TILE_SIZE, TILE_SIZE);
-  CPLFree(rasterHeights);
+  prepareSettingsOfTile(terrainTile, coord, rasterHeights.data(), TILE_SIZE, TILE_SIZE);
 
   return terrainTile;
 }
@@ -78,12 +77,11 @@ ctb::TerrainTiler::createTile(GDALDataset *dataset, const TileCoordinate &coord)
 TerrainTile *
 ctb::TerrainTiler::createTile(GDALDataset *dataset, const TileCoordinate &coord, ctb::GDALDatasetReader *reader) const {
   // Copy the raster data into an array
-  float *rasterHeights = reader->readRasterHeights(dataset, coord, TILE_SIZE, TILE_SIZE);
+  const auto rasterHeights = reader->readRasterHeights(dataset, coord, TILE_SIZE, TILE_SIZE);
 
   // Get a mesh tile represented by the tile coordinate
   TerrainTile *terrainTile = new TerrainTile(coord);
-  prepareSettingsOfTile(terrainTile, coord, rasterHeights, TILE_SIZE, TILE_SIZE);
-  CPLFree(rasterHeights);
+  prepareSettingsOfTile(terrainTile, coord, rasterHeights.data(), TILE_SIZE, TILE_SIZE);
 
   return terrainTile;
 }

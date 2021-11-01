@@ -103,7 +103,7 @@ protected:
   }
 
   /// Assigns settings of Tile just to use.
-  void prepareSettingsOfTile(TerrainTile *tile, const TileCoordinate &coord, float *rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const;
+  void prepareSettingsOfTile(TerrainTile *tile, const TileCoordinate &coord, const float* rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const;
 };
 
 #endif /* TERRAINTILER_HPP */

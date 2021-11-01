@@ -46,12 +46,10 @@ namespace ctb {
 class CTB_DLL ctb::GDALDatasetReader {
 public:
   /// Read a region of raster heights into an array for the specified Dataset and Coordinate
-  static float *
-  readRasterHeights(const GDALTiler &tiler, GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY);
+  static std::vector<float> readRasterHeights(const GDALTiler &tiler, GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY);
 
   /// Read a region of raster heights into an array for the specified Dataset and Coordinate
-  virtual float *
-  readRasterHeights(GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) = 0;
+  virtual std::vector<float> readRasterHeights(GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) = 0;
 
 protected:
   /// Create a raster tile from a tile coordinate
@@ -81,8 +79,7 @@ public:
   ~GDALDatasetReaderWithOverviews();
 
   /// Read a region of raster heights into an array for the specified Dataset and Coordinate
-  virtual float *
-  readRasterHeights(GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) override;
+  std::vector<float> readRasterHeights(GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) override;
 
   /// Releases all overviews
   void reset();

@@ -28,6 +28,8 @@
 #include "cpl_config.h"
 #include "cpl_string.h"
 
+#include "TileCoordinate.hpp"
+
 /**
  * Helper classes to fill an irregular mesh of triangles from a heightmap tile.
  * They are a refactored version from 'heightfield_chunker.cpp' from 
@@ -78,7 +80,7 @@ public:
 class ctb::chunk::heightfield {
 public:
   /// Constructor
-  heightfield(float *tileHeights, int tileSize) {
+  heightfield(const float *tileHeights, int tileSize) {
     int tileCellSize = tileSize * tileSize;
 
     m_heights = tileHeights;
@@ -262,7 +264,7 @@ public:
 private:
   int m_size;         // Number of cols and rows of this Heightmap
   int m_log_size;     // size == (1 << log_size) + 1
-  float *m_heights;   // grid of heights
+  const float *m_heights;   // grid of heights
   int *m_levels;      // grid of activation levels
 
   /// Return the activation level at (x, y)

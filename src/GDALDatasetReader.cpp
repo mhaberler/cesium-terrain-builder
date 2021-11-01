@@ -19,6 +19,8 @@
  * @brief This defines the `GDALDatasetReader` class
  */
 
+#include <cassert>
+
 #include "gdal_priv.h"
 #include "gdalwarper.h"
 
@@ -33,21 +35,19 @@ using namespace ctb;
  * Read a region of raster heights for the specified Dataset and Coordinate. 
  * This method uses `GDALRasterBand::RasterIO` function.
  */
-float *
+std::vector<float>
 ctb::GDALDatasetReader::readRasterHeights(const GDALTiler &tiler, GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) {
   GDALTile *rasterTile = createRasterTile(tiler, dataset, coord); // the raster associated with this tile coordinate
 
   const ctb::i_tile TILE_CELL_SIZE = tileSizeX * tileSizeY;
-  float *rasterHeights = (float *)CPLCalloc(TILE_CELL_SIZE, sizeof(float));
+  std::vector<float> rasterHeights(TILE_CELL_SIZE);
 
   GDALRasterBand *heightsBand = rasterTile->dataset->GetRasterBand(1);
 
   if (heightsBand->RasterIO(GF_Read, 0, 0, tileSizeX, tileSizeY,
-                            (void *) rasterHeights, tileSizeX, tileSizeY, GDT_Float32,
+                            (void *) rasterHeights.data(), tileSizeX, tileSizeY, GDT_Float32,
                             0, 0) != CE_None) {
     delete rasterTile;
-    CPLFree(rasterHeights);
-
     throw CTBException("Could not read heights from raster");
   }
   delete rasterTile;
@@ -92,15 +92,15 @@ ctb::GDALDatasetReaderWithOverviews::~GDALDatasetReaderWithOverviews() {
 }
 
 /// Read a region of raster heights into an array for the specified Dataset and Coordinate
-float *
+std::vector<float>
 ctb::GDALDatasetReaderWithOverviews::readRasterHeights(GDALDataset *dataset, const TileCoordinate &coord, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) {
   GDALDataset *mainDataset = dataset;
 
   const ctb::i_tile TILE_CELL_SIZE = tileSizeX * tileSizeY;
-  float *rasterHeights = (float *)CPLCalloc(TILE_CELL_SIZE, sizeof(float));
+  std::vector<float> rasterHeights(TILE_CELL_SIZE);
 
   // Replace GDAL Dataset by last valid Overview.
-  for (int i = mOverviews.size() - 1; i >= 0; --i) {
+  for (size_t i = mOverviews.size() - 1; i < mOverviews.size(); --i) {
     if (mOverviews[i]) {
       dataset = mOverviews[i];
       break;
@@ -112,10 +112,11 @@ ctb::GDALDatasetReaderWithOverviews::readRasterHeights(GDALDataset *dataset, con
   while (!rasterOk) {
     GDALTile *rasterTile = createRasterTile(poTiler, dataset, coord); // the raster associated with this tile coordinate
 
+    assert(rasterTile->dataset->GetRasterCount() == 1);
     GDALRasterBand *heightsBand = rasterTile->dataset->GetRasterBand(1);
 
     if (heightsBand->RasterIO(GF_Read, 0, 0, tileSizeX, tileSizeY,
-                              (void *) rasterHeights, tileSizeX, tileSizeY, GDT_Float32,
+                              (void *) rasterHeights.data(), tileSizeX, tileSizeY, GDT_Float32,
                               0, 0) != CE_None) {
       
       GDALDataset *psOverview = createOverview(poTiler, mainDataset, coord, mOverviewIndex++);
@@ -125,7 +126,6 @@ ctb::GDALDatasetReaderWithOverviews::readRasterHeights(GDALDataset *dataset, con
       }
       else {
         delete rasterTile;
-        CPLFree(rasterHeights);
         throw CTBException("Could not create an overview of current GDAL dataset");
       }
     }
@@ -137,7 +137,6 @@ ctb::GDALDatasetReaderWithOverviews::readRasterHeights(GDALDataset *dataset, con
 
   // Everything ok?
   if (!rasterOk) {
-    CPLFree(rasterHeights);
     throw CTBException("Could not read heights from raster");
   }
   return rasterHeights;
