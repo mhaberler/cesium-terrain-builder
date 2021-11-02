@@ -610,8 +610,8 @@ buildGDAL(GDALSerializer &serializer, const RasterTiler &tiler, TerrainBuild *co
 /// Output terrain tiles represented by a tiler to a directory
 static void
 buildTerrain(TerrainSerializer &serializer, const TerrainTiler &tiler, TerrainBuild *command, TerrainMetadata *metadata) {
-  i_zoom startZoom = (command->startZoom < 0) ? tiler.maxZoomLevel() : command->startZoom,
-    endZoom = (command->endZoom < 0) ? 0 : command->endZoom;
+  i_zoom startZoom = (command->startZoom < 0) ? tiler.maxZoomLevel() : command->startZoom;
+  i_zoom endZoom = (command->endZoom < 0) ? 0 : command->endZoom;
 
   TerrainIterator iter(tiler, startZoom, endZoom);
   int currentIndex = incrementIterator(iter, 0);

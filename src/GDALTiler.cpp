@@ -47,7 +47,7 @@ GDALTiler::GDALTiler(GDALDataset *poDataset, const Grid &grid, const TilerOption
 
   // if the dataset is set we need to initialise the tile bounds and raster
   // resolution from it.
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
 
     // Get the bounds of the dataset
     double adfGeoTransform[6];
@@ -82,10 +82,8 @@ GDALTiler::GDALTiler(GDALDataset *poDataset, const Grid &grid, const TilerOption
         break;
       case OGRERR_CORRUPT_DATA:
         throw CTBException("The source spatial reference system appears to be corrupted");
-        break;
       case OGRERR_UNSUPPORTED_SRS:
         throw CTBException("The source spatial reference system is not supported");
-        break;
       default:
         throw CTBException("There is an unhandled return value from `srcSRS.Validate()`");
       }
@@ -95,32 +93,33 @@ GDALTiler::GDALTiler(GDALDataset *poDataset, const Grid &grid, const TilerOption
       double y[4] = { bounds.getMinY(), bounds.getMinY(), bounds.getMaxY(), bounds.getMaxY() };
 
       OGRCoordinateTransformation *transformer = OGRCreateCoordinateTransformation(&srcSRS, &gridSRS);
-      if (transformer == NULL) {
+      if (transformer == nullptr) {
         throw CTBException("The source dataset to tile grid coordinate transformation could not be created");
-      } else if (transformer->Transform(4, x, y) != true) {
+      }
+      if (transformer->Transform(4, x, y) != true) {
         delete transformer;
         throw CTBException("Could not transform dataset bounds to tile spatial reference system");
       }
       delete transformer;
 
       // Get the min and max values of the transformed coordinates
-      double minX = std::min(std::min(x[0], x[1]), std::min(x[2], x[3])),
-        maxX = std::max(std::max(x[0], x[1]), std::max(x[2], x[3])),
-        minY = std::min(std::min(y[0], y[1]), std::min(y[2], y[3])),
-        maxY = std::max(std::max(y[0], y[1]), std::max(y[2], y[3]));
+      double minX = std::min(std::min(x[0], x[1]), std::min(x[2], x[3]));
+      double maxX = std::max(std::max(x[0], x[1]), std::max(x[2], x[3]));
+      double minY = std::min(std::min(y[0], y[1]), std::min(y[2], y[3]));
+      double maxY = std::max(std::max(y[0], y[1]), std::max(y[2], y[3]));
 
       mBounds = CRSBounds(minX, minY, maxX, maxY); // set the bounds
       mResolution = mBounds.getWidth() / poDataset->GetRasterXSize(); // set the resolution
 
       // cache the SRS string for use in reprojections later
-      char *srsWKT = NULL;
+      char *srsWKT = nullptr;
       if (gridSRS.exportToWkt(&srsWKT) != OGRERR_NONE) {
         CPLFree(srsWKT);
         throw CTBException("Could not create grid WKT string");
       }
-      crsWKT = srsWKT;
+      mCrsWKT = srsWKT;
       CPLFree(srsWKT);
-      srsWKT = NULL;
+      srsWKT = nullptr;
 
     } else {                    // no reprojection is necessary
       mBounds = bounds;         // use the existing dataset bounds
@@ -136,9 +135,9 @@ GDALTiler::GDALTiler(const GDALTiler &other):
   poDataset(other.poDataset),
   mBounds(other.mBounds),
   mResolution(other.mResolution),
-  crsWKT(other.crsWKT)
+  mCrsWKT(other.mCrsWKT)
 {
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
     poDataset->Reference();     // increase the refcount of the dataset
   }
 }
@@ -148,9 +147,9 @@ GDALTiler::GDALTiler(GDALTiler &other):
   poDataset(other.poDataset),
   mBounds(other.mBounds),
   mResolution(other.mResolution),
-  crsWKT(other.crsWKT)
+  mCrsWKT(other.mCrsWKT)
 {
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
     poDataset->Reference();     // increase the refcount of the dataset
   }
 }
@@ -162,13 +161,13 @@ GDALTiler::operator=(const GDALTiler &other) {
   mGrid = other.mGrid;
   poDataset = other.poDataset;
 
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
     poDataset->Reference();     // increase the refcount of the dataset
   }
 
   mBounds = other.mBounds;
   mResolution = other.mResolution;
-  crsWKT = other.crsWKT;
+  mCrsWKT = other.mCrsWKT;
 
   return *this;
 }
@@ -180,8 +179,8 @@ GDALTiler::~GDALTiler() {
 GDALTile *
 GDALTiler::createRasterTile(GDALDataset *dataset, const TileCoordinate &coord) const {
   // Convert the tile bounds into a geo transform
-  double adfGeoTransform[6],
-    resolution = mGrid.resolution(coord.zoom);
+  double adfGeoTransform[6];
+  double resolution = mGrid.resolution(coord.zoom);
   CRSBounds tileBounds = mGrid.tileBounds(coord);
 
   adfGeoTransform[0] = tileBounds.getMinX(); // min longitude
@@ -224,7 +223,7 @@ static
 GDALDatasetH
 getOverviewDataset(GDALDatasetH hSrcDS, GDALTransformerFunc pfnTransformer, void *hTransformerArg) {
   GDALDataset* poSrcDS = static_cast<GDALDataset*>(hSrcDS);
-  GDALDataset* poSrcOvrDS = NULL;
+  GDALDataset* poSrcOvrDS = nullptr;
   int nOvLevel = -2;
   int nOvCount = poSrcDS->GetRasterBand(1)->GetOverviewCount();
   if( nOvCount > 0 )
@@ -283,7 +282,7 @@ getOverviewDataset(GDALDatasetH hSrcDS, GDALTransformerFunc pfnTransformer, void
  */
 GDALTile *
 GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) const {
-  if (dataset == NULL) {
+  if (dataset == nullptr) {
     throw CTBException("No GDAL dataset is set");
   }
 
@@ -295,15 +294,15 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   CPLStringList transformOptions;
 
   // The source, sink and grid srs
-  const char *pszSrcWKT = GDALGetProjectionRef(hSrcDS),
-    *pszGridWKT = pszSrcWKT;
+  const char *pszSrcWKT = GDALGetProjectionRef(hSrcDS);
+  const char *pszGridWKT = pszSrcWKT;
 
   if (!strlen(pszSrcWKT))
     throw CTBException("The source dataset no longer has a spatial reference system assigned");
 
   // Populate the SRS WKT strings if we need to reproject
   if (requiresReprojection()) {
-    pszGridWKT = crsWKT.c_str();
+    pszGridWKT = mCrsWKT.c_str();
     transformOptions.SetNameValue("SRC_SRS", pszSrcWKT);
     transformOptions.SetNameValue("DST_SRS", pszGridWKT);
   }
@@ -342,8 +341,8 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   }
 
   // Create the image to image transformer
-  void *transformerArg = GDALCreateGenImgProjTransformer2(hSrcDS, NULL, transformOptions.List());
-  if(transformerArg == NULL) {
+  void *transformerArg = GDALCreateGenImgProjTransformer2(hSrcDS, nullptr, transformOptions.List());
+  if(transformerArg == nullptr) {
     GDALDestroyWarpOptions(psWarpOptions);
     throw CTBException("Could not create image to image transformer");
   }
@@ -354,7 +353,7 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   // Try and get an overview from the source dataset that corresponds more
   // closely to the resolution of this tile.
   GDALDatasetH hWrkSrcDS = getOverviewDataset(hSrcDS, GDALGenImgProjTransform, transformerArg);
-  if (hWrkSrcDS == NULL) {
+  if (hWrkSrcDS == nullptr) {
     hWrkSrcDS = psWarpOptions->hSrcDS = hSrcDS;
   } else {
     psWarpOptions->hSrcDS = hWrkSrcDS;
@@ -362,8 +361,8 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
     // We need to recreate the transform when operating on an overview.
     GDALDestroyGenImgProjTransformer( transformerArg );
 
-    transformerArg = GDALCreateGenImgProjTransformer2( hWrkSrcDS, NULL, transformOptions.List() );
-    if(transformerArg == NULL) {
+    transformerArg = GDALCreateGenImgProjTransformer2( hWrkSrcDS, nullptr, transformOptions.List() );
+    if(transformerArg == nullptr) {
       GDALDestroyWarpOptions(psWarpOptions);
       throw CTBException("Could not create overview image to image transformer");
     }
@@ -373,12 +372,12 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   }
 
   // Decide if we are doing an approximate or exact transformation
-  if (options.errorThreshold) {
+  if (options.errorThreshold != 0) {
     // approximate: wrap the transformer with a linear approximator
     psWarpOptions->pTransformerArg =
       GDALCreateApproxTransformer(GDALGenImgProjTransform, transformerArg, options.errorThreshold);
 
-    if (psWarpOptions->pTransformerArg == NULL) {
+    if (psWarpOptions->pTransformerArg == nullptr) {
       GDALDestroyWarpOptions(psWarpOptions);
       GDALDestroyGenImgProjTransformer(transformerArg);
       throw CTBException("Could not create linear approximator");
@@ -398,7 +397,7 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   bool isApproxTransform = (psWarpOptions->pfnTransformer == GDALApproxTransform);
   GDALDestroyWarpOptions( psWarpOptions );
 
-  if (hDstDS == NULL) {
+  if (hDstDS == nullptr) {
     GDALDestroyGenImgProjTransformer(transformerArg);
     throw CTBException("Could not create warped VRT");
   }
@@ -407,7 +406,7 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   // SRS.
   if (GDALSetProjection( hDstDS, pszGridWKT ) != CE_None) {
     GDALClose(hDstDS);
-    if (transformerArg != NULL) {
+    if (transformerArg != nullptr) {
       GDALDestroyGenImgProjTransformer(transformerArg);
     }
     throw CTBException("Could not set projection on VRT");
@@ -420,7 +419,7 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
   // an approximate transform
   return new GDALTile((GDALDataset *) hDstDS,
                       isApproxTransform
-                      ? transformerArg : NULL);
+                      ? transformerArg : nullptr);
 }
 
 /**
@@ -430,13 +429,13 @@ GDALTiler::createRasterTile(GDALDataset *dataset, double (&adfGeoTransform)[6]) 
 void
 GDALTiler::closeDataset() {
   // Dereference and possibly close the GDAL dataset
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
     poDataset->Dereference();
 
     if (poDataset->GetRefCount() < 1) {
       GDALClose(poDataset);
     }
 
-    poDataset = NULL;
+    poDataset = nullptr;
   }
 }

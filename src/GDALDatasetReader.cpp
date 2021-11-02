@@ -76,7 +76,7 @@ ctb::GDALDatasetReader::createOverview(const GDALTiler &tiler, GDALDataset *data
     adfGeoTransform[5] *= nFactorScale;
 
     TerrainTiler tempTiler(tiler.dataset(), tiler.grid(), tiler.options);
-    tempTiler.crsWKT = "";
+    tempTiler.mCrsWKT = "";
     GDALTile *rasterTile = createRasterTile(tempTiler, dataset, coord);
     if (rasterTile) {
       poOverview = rasterTile->detach();

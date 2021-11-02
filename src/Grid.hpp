@@ -107,8 +107,8 @@ public:
   /// Get the tile covering a pixel location
   inline TilePoint
   pixelsToTile(const PixelPoint &pixel) const {
-    i_tile tx = (i_tile) (pixel.x / mTileSize),
-      ty = (i_tile) (pixel.y / mTileSize);
+    i_tile tx = i_tile (pixel.x / mTileSize);
+    i_tile ty = i_tile (pixel.y / mTileSize);
 
     return TilePoint(tx, ty);
   }
@@ -126,8 +126,8 @@ public:
   inline PixelPoint
   crsToPixels(const CRSPoint &coord, i_zoom zoom) const {
     double res = resolution(zoom);
-    i_pixel px = (mXOriginShift + coord.x) / res,
-      py = (mYOriginShift + coord.y) / res;
+    i_pixel px = (mXOriginShift + coord.x) / res;
+    i_pixel py = (mYOriginShift + coord.y) / res;
 
     return PixelPoint(px, py);
   }
@@ -145,12 +145,12 @@ public:
   inline CRSBounds
   tileBounds(const TileCoordinate &coord) const {
     // get the pixels coordinates representing the tile bounds
-    const PixelPoint pxLowerLeft(coord.x * mTileSize, coord.y * mTileSize),
-      pxUpperRight((coord.x + 1) * mTileSize, (coord.y + 1) * mTileSize);
+    const PixelPoint pxLowerLeft(coord.x * mTileSize, coord.y * mTileSize);
+    const PixelPoint pxUpperRight((coord.x + 1) * mTileSize, (coord.y + 1) * mTileSize);
 
     // convert pixels to native coordinates
-    const CRSPoint lowerLeft = pixelsToCrs(pxLowerLeft, coord.zoom),
-      upperRight = pixelsToCrs(pxUpperRight, coord.zoom);
+    const CRSPoint lowerLeft = pixelsToCrs(pxLowerLeft, coord.zoom);
+    const CRSPoint upperRight = pixelsToCrs(pxUpperRight, coord.zoom);
 
     return CRSBounds(lowerLeft, upperRight);
   }
@@ -193,9 +193,9 @@ protected:
   /// The spatial reference system covered by the grid
   OGRSpatialReference mSRS;
 
-  double mInitialResolution, ///< The initial resolution of this particular profile
-    mXOriginShift, ///< The shift in CRS coordinates to get to the origin from minx
-    mYOriginShift; ///< The shift in CRS coordinates to get to the origin from miny
+  double mInitialResolution; ///< The initial resolution of this particular profile
+  double mXOriginShift; ///< The shift in CRS coordinates to get to the origin from minx
+  double mYOriginShift; ///< The shift in CRS coordinates to get to the origin from miny
 
   /// By what factor will the scale increase at each zoom level?
   float mZoomFactor;

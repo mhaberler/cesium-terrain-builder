@@ -148,7 +148,7 @@ public:
   /// Does the dataset require reprojecting to EPSG:4326?
   inline bool
   requiresReprojection() const {
-    return crsWKT.size() > 0;
+    return mCrsWKT.size() > 0;
   }
 
 protected:
@@ -185,7 +185,7 @@ protected:
    * This is only set if the underlying dataset does not match the coordinate
    * reference system of the grid being used.
    */
-  std::string crsWKT;
+  std::string mCrsWKT;
 };
 
 #endif /* GDALTILER_HPP */
