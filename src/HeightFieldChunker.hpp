@@ -1,6 +1,8 @@
 #ifndef HEIGHTFIELDCHUNKER_HPP
 #define HEIGHTFIELDCHUNKER_HPP
 
+#include <cassert>
+
 /*******************************************************************************
  * Copyright 2018 GeoData <geodata@soton.ac.uk>
  *
@@ -86,22 +88,17 @@ public:
 
     m_heights = tileHeights;
     m_size = tileSize;
-    m_log_size = (int)(log2((float)m_size - 1) + 0.5);
+    m_log_size = int(log2(float(m_size - 1)) + 0.5f);
 
     // Initialize level array.
-    m_levels = (int*)CPLMalloc(tileCellSize * sizeof(int));
-    for (int i = 0; i < tileCellSize; i++) m_levels[i] = 255;
+    m_levels = std::vector<int>(tileCellSize, 255);
   }
   ~heightfield() {
-    clear();
   }
 
   /// Apply the specified maximum geometric error to fill the level info of the grid.
   void applyGeometricError(double maximumGeometricError, bool smoothSmallZooms = false) {
     int tileCellSize = m_size * m_size;
-
-    // Initialize level array.
-    for (int i = 0; i < tileCellSize; i++) m_levels[i] = 255;
 
     // Run a view-independent L-K style BTT update on the heightfield,
     // to generate error and activation_level values for each element.
@@ -217,14 +214,10 @@ public:
 
   /// Clear all object data
   void clear() {
-    m_heights = NULL;
+    m_heights = nullptr;
     m_size = 0;
     m_log_size = 0;
-
-    if (m_levels) {
-      CPLFree(m_levels);
-      m_levels = NULL;
-    }
+    m_levels = std::vector<int>();
   }
 
   /// Return the array-index of specified coordinate, row order by default.
@@ -266,12 +259,13 @@ private:
   int m_size;         // Number of cols and rows of this Heightmap
   int m_log_size;     // size == (1 << log_size) + 1
   const float *m_heights;   // grid of heights
-  int *m_levels;      // grid of activation levels
+  std::vector<int> m_levels;      // grid of activation levels
 
   /// Return the activation level at (x, y)
   int get_level(int x, int y) const
   {
     int index = indexOfGridCoordinate(x, y);
+    assert(size_t(index) < m_levels.size());
     int level = m_levels[index];
 
     if (x & 1) {
@@ -286,6 +280,7 @@ private:
   {
     newlevel &= 0x0F;
     int index = indexOfGridCoordinate(x, y);
+    assert(size_t(index) < m_levels.size());
     int level = m_levels[index];
 
     if (x & 1) {
@@ -294,6 +289,7 @@ private:
     else {
       level = (level & 0xF0) | (newlevel);
     }
+    assert(size_t(index) < m_levels.size());
     m_levels[index] = level;
   }
   /// Sets the activation_level to the given level.
