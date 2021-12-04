@@ -264,6 +264,9 @@ private:
   /// Return the activation level at (x, y)
   int get_level(int x, int y) const
   {
+    if (x == m_size) return -1;
+    if (y == m_size) return -1;
+
     int index = indexOfGridCoordinate(x, y);
     assert(size_t(index) < m_levels.size());
     int level = m_levels[index];
@@ -278,6 +281,9 @@ private:
   /// Set the activation level at (x, y)
   void set_level(int x, int y, int newlevel)
   {
+    if (x == m_size) return;
+    if (y == m_size) return;
+
     newlevel &= 0x0F;
     int index = indexOfGridCoordinate(x, y);
     assert(size_t(index) < m_levels.size());
