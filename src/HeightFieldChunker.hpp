@@ -29,6 +29,7 @@
 #include "cpl_string.h"
 
 #include "TileCoordinate.hpp"
+#include "Grid.hpp"
 
 /**
  * Helper classes to fill an irregular mesh of triangles from a heightmap tile.
