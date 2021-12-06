@@ -83,23 +83,20 @@ public:
 class ctb::chunk::heightfield {
 public:
   /// Constructor
-  heightfield(const float *tileHeights, int tileSize) {
-    int tileCellSize = tileSize * tileSize;
+  heightfield(const std::vector<float>& tileHeights, int tileSize) : m_heights(tileHeights) {
+//    int tileCellSize = tileSize * tileSize;
 
-    m_heights = tileHeights;
-    m_size = tileSize;
+    m_size = tileSize + 1;
     m_log_size = int(log2(float(m_size - 1)) + 0.5f);
 
     // Initialize level array.
-    m_levels = std::vector<int>(tileCellSize, 255);
+    m_levels = std::vector<int>(m_size * m_size, 255);
   }
   ~heightfield() {
   }
 
   /// Apply the specified maximum geometric error to fill the level info of the grid.
   void applyGeometricError(double maximumGeometricError, bool smoothSmallZooms = false) {
-    int tileCellSize = m_size * m_size;
-
     // Run a view-independent L-K style BTT update on the heightfield,
     // to generate error and activation_level values for each element.
     update(maximumGeometricError, 0, m_size - 1, m_size - 1, m_size - 1, 0, 0); // sw half of the square
@@ -212,21 +209,16 @@ public:
     }
   }
 
-  /// Clear all object data
-  void clear() {
-    m_heights = nullptr;
-    m_size = 0;
-    m_log_size = 0;
-    m_levels = std::vector<int>();
-  }
-
   /// Return the array-index of specified coordinate, row order by default.
-  virtual int indexOfGridCoordinate(int x, int y) const {
-    return (y * m_size) + x;
+  virtual size_t indexOfGridCoordinate(int x, int y) const {
+    return size_t((y * m_size) + x);
   }
   /// Return the height of specified coordinate.
   virtual float height(int x, int y) const {
-    int index = indexOfGridCoordinate(x, y);
+    x = std::min(x, (m_size - 2));
+    y = std::min(y, (m_size - 2));
+    const auto index = size_t((y * (m_size - 1)) + x);
+    assert(index < m_heights.size());
     return m_heights[index];
   }
 
@@ -258,17 +250,14 @@ public:
 private:
   int m_size;         // Number of cols and rows of this Heightmap
   int m_log_size;     // size == (1 << log_size) + 1
-  const float *m_heights;   // grid of heights
+  const std::vector<float>& m_heights;   // grid of heights
   std::vector<int> m_levels;      // grid of activation levels
 
   /// Return the activation level at (x, y)
   int get_level(int x, int y) const
   {
-    if (x == m_size) return -1;
-    if (y == m_size) return -1;
-
-    int index = indexOfGridCoordinate(x, y);
-    assert(size_t(index) < m_levels.size());
+    const auto index = indexOfGridCoordinate(x, y);
+    assert(index < m_levels.size());
     int level = m_levels[index];
 
     if (x & 1) {
@@ -281,12 +270,9 @@ private:
   /// Set the activation level at (x, y)
   void set_level(int x, int y, int newlevel)
   {
-    if (x == m_size) return;
-    if (y == m_size) return;
-
     newlevel &= 0x0F;
-    int index = indexOfGridCoordinate(x, y);
-    assert(size_t(index) < m_levels.size());
+    const auto index = indexOfGridCoordinate(x, y);
+    assert(index < m_levels.size());
     int level = m_levels[index];
 
     if (x & 1) {
@@ -295,7 +281,7 @@ private:
     else {
       level = (level & 0xF0) | (newlevel);
     }
-    assert(size_t(index) < m_levels.size());
+    assert(index < m_levels.size());
     m_levels[index] = level;
   }
   /// Sets the activation_level to the given level.

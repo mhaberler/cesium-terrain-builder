@@ -112,7 +112,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-ctb::MeshTiler::prepareSettingsOfTile(MeshTile *terrainTile, GDALDataset *dataset, const TileCoordinate &coord, const float *rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const {
+ctb::MeshTiler::prepareSettingsOfTile(MeshTile *terrainTile, GDALDataset *dataset, const TileCoordinate &coord, const std::vector<float>& rasterHeights, ctb::i_tile tileSizeX, ctb::i_tile tileSizeY) const {
   const ctb::i_tile TILE_SIZE = tileSizeX;
 
   // Number of tiles in the horizontal direction at tile level zero.
@@ -153,7 +153,7 @@ ctb::MeshTiler::prepareSettingsOfTile(MeshTile *terrainTile, GDALDataset *datase
       if (datasetBounds.overlaps(neighborBounds)) {
         const auto neighborHeights = ctb::GDALDatasetReader::readRasterHeights(*this, dataset, neighborCoord, mGrid.tileSize(), mGrid.tileSize());
 
-        ctb::chunk::heightfield neighborHeightfield(neighborHeights.data(), TILE_SIZE);
+        ctb::chunk::heightfield neighborHeightfield(neighborHeights, TILE_SIZE);
         neighborHeightfield.applyGeometricError(maximumGeometricError);
         heightfield.applyBorderActivationState(neighborHeightfield, borderIndex);
       }
@@ -163,7 +163,6 @@ ctb::MeshTiler::prepareSettingsOfTile(MeshTile *terrainTile, GDALDataset *datase
   Mesh &tileMesh = terrainTile->getMesh();
   WrapperMesh mesh(mGridBounds, tileMesh, tileSizeX, tileSizeY);
   heightfield.generateMesh(mesh, 0);
-  heightfield.clear();
 
   // If we are not at the maximum zoom level we need to set child flags on the
   // tile where child tiles overlap the dataset bounds.
@@ -196,7 +195,7 @@ ctb::MeshTiler::createMesh(GDALDataset *dataset, const TileCoordinate &coord) co
 
   // Get a mesh tile represented by the tile coordinate
   MeshTile *terrainTile = new MeshTile(coord);
-  prepareSettingsOfTile(terrainTile, dataset, coord, rasterHeights.data(), mGrid.tileSize(), mGrid.tileSize());
+  prepareSettingsOfTile(terrainTile, dataset, coord, rasterHeights, mGrid.tileSize(), mGrid.tileSize());
 
   return terrainTile;
 }
@@ -208,7 +207,7 @@ ctb::MeshTiler::createMesh(GDALDataset *dataset, const TileCoordinate &coord, ct
 
   // Get a mesh tile represented by the tile coordinate
   MeshTile *terrainTile = new MeshTile(coord);
-  prepareSettingsOfTile(terrainTile, dataset, coord, rasterHeights.data(), mGrid.tileSize(), mGrid.tileSize());
+  prepareSettingsOfTile(terrainTile, dataset, coord, rasterHeights, mGrid.tileSize(), mGrid.tileSize());
 
   return terrainTile;
 }
