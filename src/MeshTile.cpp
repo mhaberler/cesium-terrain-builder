@@ -60,8 +60,8 @@ static inline double llh_ecef_n(double x) {
   return llh_ecef_wgs84_a / std::sqrt(1.0 - llh_ecef_wgs84_e2 * (snx * snx));
 }
 static inline CRSVertex LLH2ECEF(const CRSVertex& coordinate) {
-  double lon = coordinate.x * (M_PI / 180.0);
-  double lat = coordinate.y * (M_PI / 180.0);
+  double lat = coordinate.x * (M_PI / 180.0);
+  double lon = coordinate.y * (M_PI / 180.0);
   double alt = coordinate.z;
 
   double x = (llh_ecef_n(lat) + alt) * std::cos(lat) * std::cos(lon);
@@ -247,8 +247,8 @@ MeshTile::writeFile(CTBOutputStream &ostream, bool writeVertexNormals) const {
   ostream.write(&centerZ, sizeof(double));
   //
   // The minimum and maximum heights in the area covered by this tile.
-  float minimumHeight = (float)bounds.min.z;
-  float maximumHeight = (float)bounds.max.z;
+  float minimumHeight = float(bounds.min.z);
+  float maximumHeight = float(bounds.max.z);
   ostream.write(&minimumHeight, sizeof(float));
   ostream.write(&maximumHeight, sizeof(float));
   //

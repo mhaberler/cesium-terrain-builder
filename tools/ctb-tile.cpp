@@ -666,12 +666,19 @@ buildMesh(MeshSerializer &serializer, const MeshTiler &tiler, TerrainBuild *comm
   setIteratorSize(iter);
   GDALDatasetReaderWithOverviews reader(tiler);
 
+  OGRSpatialReference destSRS;
+  destSRS.SetWellKnownGeogCS("EPSG:4326");
+  auto coordinateTransform = OGRCreateCoordinateTransformation(&iter.getGrid().getSRS(), &destSRS);
+
   while (!iter.exhausted()) {
     const TileCoordinate *coordinate = iter.GridIterator::operator*();
     if (metadata) metadata->add(tiler.grid(), coordinate);
 
     if (serializer.mustSerializeCoordinate(coordinate)) {
       MeshTile *tile = iter.operator*(&reader);
+      for(auto& vertex : tile->getMesh().vertices) {
+          coordinateTransform->Transform(1, &vertex.x, &vertex.y);
+      }
       serializer.serializeTile(tile, writeVertexNormals);
       delete tile;
     }
@@ -679,6 +686,7 @@ buildMesh(MeshSerializer &serializer, const MeshTiler &tiler, TerrainBuild *comm
     currentIndex = incrementIterator(iter, currentIndex);
     showProgress(currentIndex);
   }
+  delete coordinateTransform;
 }
 
 static void
