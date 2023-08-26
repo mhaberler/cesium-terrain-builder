@@ -35,6 +35,9 @@
 
 using namespace ctb;
 
+GDALDataset *myGDALCreateOverviewDataset(GDALDataset *poDS, int nOvrLevel,
+                                       bool bThisLevelOnly);
+
 GDALTiler::GDALTiler(GDALDataset *poDataset, const Grid &grid, const TilerOptions &options):
   mGrid(grid),
   poDataset(poDataset),
@@ -214,7 +217,7 @@ GDALTiler::createRasterTile(GDALDataset *dataset, const TileCoordinate &coord) c
  * `gdalwarp -ovr` option.
  */
 #if ( GDAL_VERSION_MAJOR >= 3 )
-#include "gdaloverviewdataset.cpp"
+#include "myods.cpp"
 #elif ( GDAL_VERSION_MAJOR >= 2 && GDAL_VERSION_MINOR >= 2 )
 #include "gdaloverviewdataset-gdal2x.cpp"
 #endif
@@ -257,9 +260,9 @@ getOverviewDataset(GDALDatasetH hSrcDS, GDALTransformerFunc pfnTransformer, void
                 {
                   //std::cout << "CTB WARPING: Selecting overview level " << iOvr << " for output dataset " << nPixels << "x" << nLines << std::endl;
                 #if ( GDAL_VERSION_MAJOR >= 3 || ( GDAL_VERSION_MAJOR >= 2 && GDAL_VERSION_MINOR >= 2 ) )
-                  poSrcOvrDS = GDALCreateOverviewDataset( poSrcDS, iOvr, FALSE );
+                  poSrcOvrDS = myGDALCreateOverviewDataset( poSrcDS, iOvr, FALSE );
                 #else
-                  poSrcOvrDS = GDALCreateOverviewDataset( poSrcDS, iOvr, FALSE, FALSE );
+                  poSrcOvrDS = myGDALCreateOverviewDataset( poSrcDS, iOvr, FALSE, FALSE );
                 #endif
                 }
             }
