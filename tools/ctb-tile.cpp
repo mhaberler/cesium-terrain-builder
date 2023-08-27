@@ -881,8 +881,7 @@ int main(int argc, char *argv[]) {
     packaged_task<int(const char *, TerrainBuild *, Grid *, TerrainMetadata *)>
         task(runTiler);                 // wrap the function
     tasks.push_back(task.get_future()); // get a future
-    thread(move(task), command.getInputFilename(), &command, &grid, metadata)
-        .detach(); // launch on a thread
+    thread(std::move(task), command.getInputFilename(), &command, &grid, metadata).detach(); // launch on a thread
   }
 
   // Synchronise the completion of the threads
