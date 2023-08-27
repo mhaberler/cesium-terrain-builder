@@ -230,7 +230,7 @@ GDALOverviewDataset::GDALOverviewDataset(GDALDataset *poMainDSIn,
     SetDescription(poMainDS->GetDescription());
 
     CPLDebug("GDAL", "GDALOverviewDataset(%s, this=%p) creation.",
-             poMainDS->GetDescription(), this);
+             poMainDS->GetDescription(), (void *)this);
 
     papszOpenOptions = CSLDuplicate(poMainDS->GetOpenOptions());
     // Add OVERVIEW_LEVEL if not called from GDALOpenEx(), but directly.
