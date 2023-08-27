@@ -68,7 +68,7 @@ public:
       CRSVertex v1 = vertices[indices[i+1]];
       CRSVertex v2 = vertices[indices[i+2]];
 
-      sprintf(wktText, "(%.8f %.8f %f, %.8f %.8f %f, %.8f %.8f %f, %.8f %.8f %f)",
+      snprintf(wktText, sizeof(wktText), "(%.8f %.8f %f, %.8f %.8f %f, %.8f %.8f %f, %.8f %.8f %f)",
         v0.x, v0.y, v0.z,
         v1.x, v1.y, v1.z,
         v2.x, v2.y, v2.z,
